@@ -94,13 +94,10 @@ def analyze_schools(center_lat: float, center_lon: float, df: pd.DataFrame, func
     try:
         if func == 'distance':
             nearby = nearby.sort_values(by='distance_km', ascending=True).head(20)
-        elif func == 'score':
-            nearby = nearby.sort_values(by='performance_score', ascending=False).head(20)
         else:
-            print('Error')
+            nearby = nearby.sort_values(by='performance_score', ascending=False).head(20)
         nearby = nearby.reset_index(drop=True)
         nearby['rank'] = nearby.index + 1
-   
         
         schools_list = nearby[['학교명', 'distance_km', 'performance_score', 'rank']].to_dict(orient='records')
         return {'percentile': upper_percent, 'schools': schools_list}
