@@ -71,7 +71,7 @@ def load_school_data(csv_path: str) -> pd.DataFrame:
     return df.dropna(subset=['latitude', 'longitude', 'performance_score'])
 
 # 인근 학교 분석: 반경 3km 내 평균 성취도 상위 백분율, 가장 가까운 20개 학교 리스트 생성
-def analyze_schools(center_lat: float, center_lon: float, df: pd.DataFrame, radius_km: float = 3.0):
+def analyze_schools(center_lat: float, center_lon: float, df: pd.DataFrame, func: str, radius_km: float = 3.0):
     # 거리 계산
     df['distance_km'] = df.apply(
         lambda r: haversine(center_lat, center_lon, r['latitude'], r['longitude']), axis=1)
@@ -90,20 +90,35 @@ def analyze_schools(center_lat: float, center_lon: float, df: pd.DataFrame, radi
     percentile = lower_count / len(all_scores) * 100
     upper_percent = 100 - int(percentile)
 
-    # 반경 내 학교 중 거리 순 정렬 후 상위 20개 선택 및 순위 부여
-    nearby = nearby.sort_values(by='distance_km', ascending=True).head(20)
-    nearby = nearby.reset_index(drop=True)
-    nearby['rank'] = nearby.index + 1
-
-    # 결과 리스트 생성
-    schools_list = nearby[['학교명', 'distance_km', 'performance_score', 'rank']].to_dict(orient='records')
-    return {'percentile': upper_percent, 'schools': schools_list}
+    # 반경 내 학교 중 func에 따른 정렬 후 상위 20개 선택 및 순위 부여
+    try:
+        if func == 'distance':
+            nearby = nearby.sort_values(by='distance_km', ascending=True).head(20)
+        elif func == 'score':
+            nearby = nearby.sort_values(by='performance_score', ascending=False).head(20)
+        else:
+            print('Error')
+        nearby = nearby.reset_index(drop=True)
+        nearby['rank'] = nearby.index + 1
+   
+        
+        schools_list = nearby[['학교명', 'distance_km', 'performance_score', 'rank']].to_dict(orient='records')
+        return {'percentile': upper_percent, 'schools': schools_list}
+    except Exception as e:
+        print(e)
 
 # CLI 진입점
 def main():
     parser = argparse.ArgumentParser(description="아파트명으로 반경 3km 내 중학교 학군 정보 반환")
     parser.add_argument('--apartment', type=str, required=True, help="아파트명 입력")
     args = parser.parse_args()
+    while True:
+        func = input('Choose one between [distance / score]  ').strip().lower()
+        if func in ['distance', 'score']:
+            break
+        else:
+            print('잘못된 입력입니다. "distance" 또는 "score" 중 하나를 입력하세요.')
+
 
     coords = geocode_address(args.apartment)
     if not coords:
@@ -112,7 +127,7 @@ def main():
     lat, lon = coords
 
     df = load_school_data(SCHOOL_DATA_CSV)
-    result = analyze_schools(lat, lon, df)
+    result = analyze_schools(lat, lon, df, func)
 
     # 출력
     pct = result['percentile']
@@ -122,7 +137,10 @@ def main():
         print(f"반경 3km 내 중학교 평균 학업성취도: 상위 {pct}%")
         print("중학교 리스트(가장 가까운 20개):")
         for s in result['schools']:
-            print(f"{s['rank']}. {s['학교명']} - 거리: {s['distance_km']:.2f}km, 성취도: {s['performance_score']}")
+            print(f"{s['rank']}. {s['학교명']} - 거리: {s['distance_km']:.2f}km, 성취도: {s['performance_score']}" if func == 'distance' else f"{s['rank']}. {s['학교명']} - 성취도: {s['performance_score']}, 거리: {s['distance_km']:.2f}km")
+
+
 
 if __name__ == '__main__':
     main()
+
