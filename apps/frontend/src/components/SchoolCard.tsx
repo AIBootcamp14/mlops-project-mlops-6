@@ -2,11 +2,10 @@ import { Card, CardContent } from "./ui/card";
 import { MapPin, TrendingUp } from "lucide-react";
 
 interface School {
-  id: string;
-  name: string;
-  distance: number;
-  achievementRate: number;
-  address: string;
+  학교명: string;
+  distance_km: number;
+  performance_score: number;
+  rank: number;
 }
 
 interface SchoolCardProps {
@@ -32,7 +31,7 @@ const SchoolCard = ({ school, rank }: SchoolCardProps) => {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg leading-tight mb-1">
-                {school.name}
+                {school.학교명}
               </h3>
               <div className="flex items-center gap-2">
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -40,7 +39,7 @@ const SchoolCard = ({ school, rank }: SchoolCardProps) => {
                   거리
                 </p>
                 <div className="font-semibold text-primary">
-                  {formatDistance(school.distance)}
+                  {formatDistance(school.distance_km)}
                 </div>
               </div>
             </div>
@@ -51,7 +50,7 @@ const SchoolCard = ({ school, rank }: SchoolCardProps) => {
               학업성취도
             </div>
             <div className="font-semibold text-accent">
-              상위 {school.achievementRate}%
+              {school.performance_score}점
             </div>
           </div>
         </div>

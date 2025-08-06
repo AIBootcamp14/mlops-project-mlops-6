@@ -233,13 +233,7 @@ const ResultsPage = () => {
             {data.schools.map((school) => (
               <SchoolCard
                 key={school.rank}
-                school={{
-                  id: school.rank.toString(),
-                  name: school.학교명,
-                  distance: school.distance_km,
-                  achievementRate: school.performance_score,
-                  address: "", // API에서 주소 정보가 없으므로 빈 문자열
-                }}
+                school={school}
                 rank={school.rank}
               />
             ))}

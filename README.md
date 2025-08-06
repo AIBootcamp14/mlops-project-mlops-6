@@ -1,6 +1,6 @@
-# **AI Text Generator MLOps Project**
+# **아파트 주변 중학교 정보 검색 서비스**
 
-AI 텍스트 생성 서비스를 위한 MLOps 프로젝트입니다.
+아파트명을 입력하면 반경 3km 내 중학교의 학업성취도와 위치 정보를 제공하는 MLOps 프로젝트입니다.
 
 - **프로젝트 기간:** 2024.01.01 ~ 현재
 - **배포 링크:** [로컬 서비스](http://localhost:5173)
@@ -11,16 +11,19 @@ AI 텍스트 생성 서비스를 위한 MLOps 프로젝트입니다.
 
 ### **1.1 주요 기능**
 
-- AI 텍스트 생성: GPT-2 모델을 사용한 텍스트 생성
+- 아파트 주변 중학교 검색: Kakao API를 통한 주소 검색
+- 학업성취도 분석: 반경 3km 내 학교들의 평균 성취도 백분율 계산
+- 거리별 정렬: 가까운 순서로 20개 학교 정보 제공
 - 실시간 API: FastAPI를 통한 RESTful API 제공
 - 웹 인터페이스: React + TypeScript로 구현된 사용자 친화적 UI
 
 ### **1.2 사용자 흐름**
 
 - 사용자 시나리오 예시:
-  1. 웹 페이지에서 텍스트 프롬프트 입력
-  2. AI 모델이 텍스트를 생성하여 결과 반환
-  3. 생성된 텍스트를 웹 페이지에 표시
+  1. 웹 페이지에서 아파트명 입력
+  2. Kakao API로 아파트 좌표 검색
+  3. 반경 3km 내 중학교 정보 분석
+  4. 학업성취도 백분율과 학교 목록 표시
 
 ---
 
@@ -41,12 +44,12 @@ AI 텍스트 생성 서비스를 위한 MLOps 프로젝트입니다.
 
 ---
 
-## **3. 최종 선정 AI 모델 구조**
+## **3. 데이터 분석 구조**
 
-- **모델 이름:** GPT-2 (Hugging Face Transformers)
-- **구조 및 설명:** Transformer 기반 언어 모델로 텍스트 생성에 특화
-- **학습 데이터:** Hugging Face의 사전 훈련된 모델 사용
-- **평가 지표:** 생성된 텍스트의 품질 및 일관성
+- **데이터 소스:** 중학교 학업성취도 CSV 데이터
+- **지오코딩:** Kakao REST API를 통한 주소-좌표 변환
+- **거리 계산:** Haversine 공식을 사용한 정확한 거리 계산
+- **성취도 분석:** 전국 대비 상위 백분율 계산
 
 ---
 
@@ -56,17 +59,17 @@ AI 텍스트 생성 서비스를 위한 MLOps 프로젝트입니다.
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Frontend  │    │   Backend   │    │   AI Model  │
-│   (React)   │◄──►│   (FastAPI) │◄──►│   (GPT-2)   │
+│   Frontend  │    │   Backend   │    │   Kakao API │
+│   (React)   │◄──►│   (FastAPI) │◄──►│   (Geocoding)│
 │   Port:5173 │    │   Port:8000 │    │             │
 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
 ### **4.2 데이터 흐름도**
 
-1. 사용자 입력 → Frontend → Backend API
-2. Backend → AI Model → 텍스트 생성
-3. 생성된 텍스트 → Backend → Frontend → 사용자
+1. 사용자 아파트명 입력 → Frontend → Backend API
+2. Backend → Kakao API → 좌표 검색
+3. 좌표 기반 학교 데이터 분석 → Backend → Frontend → 사용자
 
 ---
 
@@ -76,21 +79,20 @@ AI 텍스트 생성 서비스를 위한 MLOps 프로젝트입니다.
 
 - FastAPI (Python 웹 프레임워크)
 - Uvicorn (ASGI 서버)
-- Transformers (Hugging Face)
-- PyTorch (딥러닝 프레임워크)
+- Pandas (데이터 분석)
+- Requests (HTTP 클라이언트)
 
 ### **5.2 프론트엔드**
 
 - React.js (JavaScript 라이브러리)
 - TypeScript (타입 안전성)
 - Vite (빌드 도구)
-- Axios (HTTP 클라이언트)
+- Tailwind CSS (스타일링)
 
-### **5.3 머신러닝 및 데이터 분석**
+### **5.3 외부 API**
 
-- Hugging Face Transformers
-- PyTorch
-- GPT-2 모델
+- Kakao REST API (지오코딩)
+- 중학교 학업성취도 데이터
 
 ### **5.4 배포 및 운영**
 
