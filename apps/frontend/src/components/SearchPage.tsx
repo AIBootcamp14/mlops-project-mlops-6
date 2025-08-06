@@ -1,20 +1,24 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { Search, School, MapPin } from "lucide-react";
 
-interface SearchPageProps {
-  onSearch: (apartmentName: string) => void;
-}
-
-const SearchPage = ({ onSearch }: SearchPageProps) => {
+const SearchPage = () => {
   const [apartmentName, setApartmentName] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (apartmentName.trim()) {
-      onSearch(apartmentName.trim());
+      navigate(`/results/${encodeURIComponent(apartmentName.trim())}`);
     }
   };
 
@@ -32,7 +36,8 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
             아파트 주변 중학교 정보
           </h1>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            아파트명을 입력하시면 반경 3km 내 중학교의 학업성취도와 위치 정보를 제공해드립니다
+            아파트명을 입력하시면 반경 3km 내 중학교의 학업성취도와 위치 정보를
+            제공해드립니다
           </p>
         </div>
 
@@ -43,9 +48,7 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
               <MapPin className="h-5 w-5 text-primary" />
               아파트 검색
             </CardTitle>
-            <CardDescription>
-              정확한 아파트명을 입력해주세요
-            </CardDescription>
+            <CardDescription>정확한 아파트명을 입력해주세요</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,9 +62,9 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
                 />
                 <Search className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
               </div>
-              <Button 
-                type="submit" 
-                size="lg" 
+              <Button
+                type="submit"
+                size="lg"
                 className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
                 disabled={!apartmentName.trim()}
               >
@@ -80,7 +83,9 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
               </div>
             </div>
             <h3 className="font-medium mb-1">학업성취도</h3>
-            <p className="text-sm text-muted-foreground">평균 성취도 백분율 제공</p>
+            <p className="text-sm text-muted-foreground">
+              평균 성취도 백분율 제공
+            </p>
           </Card>
           <Card className="text-center p-4">
             <div className="flex justify-center mb-2">
@@ -89,7 +94,9 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
               </div>
             </div>
             <h3 className="font-medium mb-1">거리별 정렬</h3>
-            <p className="text-sm text-muted-foreground">가까운 순서로 20개 학교</p>
+            <p className="text-sm text-muted-foreground">
+              가까운 순서로 20개 학교
+            </p>
           </Card>
           <Card className="text-center p-4">
             <div className="flex justify-center mb-2">
@@ -97,8 +104,10 @@ const SearchPage = ({ onSearch }: SearchPageProps) => {
                 <Search className="h-6 w-6 text-primary-glow" />
               </div>
             </div>
-            <h3 className="font-medium mb-1">지도 보기</h3>
-            <p className="text-sm text-muted-foreground">시각적 위치 정보 제공</p>
+            <h3 className="font-medium mb-1">실시간 검색</h3>
+            <p className="text-sm text-muted-foreground">
+              최신 데이터로 정확한 정보
+            </p>
           </Card>
         </div>
       </div>

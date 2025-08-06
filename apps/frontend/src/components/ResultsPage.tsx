@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -7,123 +9,131 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { ArrowLeft, School, BarChart } from "lucide-react";
+import { ArrowLeft, School, BarChart, Loader2 } from "lucide-react";
 import SchoolCard from "./SchoolCard";
 
-interface School {
-  id: string;
-  name: string;
-  distance: number;
-  achievementRate: number;
-  address: string;
-  studentCount: number;
-  grade: "A" | "B" | "C" | "D";
-  lat: number;
-  lng: number;
+// API 응답 타입 정의
+interface ApiSchool {
+  학교명: string;
+  distance_km: number;
+  performance_score: number;
+  rank: number;
 }
 
-interface ResultsPageProps {
-  apartmentName: string;
-  onBack: () => void;
+interface ApiResponse {
+  apartment: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  search_radius_km: number;
+  sort_by: string;
+  percentile: number | null;
+  schools: ApiSchool[];
 }
 
-const ResultsPage = ({ apartmentName, onBack }: ResultsPageProps) => {
-  // 목업 데이터
-  const mockSchools: School[] = [
-    {
-      id: "1",
-      name: "서울중학교",
-      distance: 0.3,
-      achievementRate: 15,
-      address: "서울시 강남구 역삼동 123-45",
-      studentCount: 850,
-      grade: "A",
-      lat: 37.5665,
-      lng: 126.978,
-    },
-    {
-      id: "2",
-      name: "한강중학교",
-      distance: 0.5,
-      achievementRate: 22,
-      address: "서울시 강남구 삼성동 456-78",
-      studentCount: 920,
-      grade: "A",
-      lat: 37.569,
-      lng: 126.985,
-    },
-    {
-      id: "3",
-      name: "미래중학교",
-      distance: 0.8,
-      achievementRate: 18,
-      address: "서울시 강남구 논현동 789-12",
-      studentCount: 780,
-      grade: "A",
-      lat: 37.564,
-      lng: 126.992,
-    },
-    {
-      id: "4",
-      name: "청솔중학교",
-      distance: 1.1,
-      achievementRate: 28,
-      address: "서울시 강남구 신사동 234-56",
-      studentCount: 1050,
-      grade: "B",
-      lat: 37.572,
-      lng: 126.97,
-    },
-    {
-      id: "5",
-      name: "새로운중학교",
-      distance: 1.3,
-      achievementRate: 35,
-      address: "서울시 서초구 반포동 345-67",
-      studentCount: 890,
-      grade: "B",
-      lat: 37.558,
-      lng: 126.985,
-    },
-    {
-      id: "6",
-      name: "희망중학교",
-      distance: 1.5,
-      achievementRate: 31,
-      address: "서울시 서초구 서초동 456-78",
-      studentCount: 950,
-      grade: "B",
-      lat: 37.555,
-      lng: 126.992,
-    },
-    {
-      id: "7",
-      name: "꿈나무중학교",
-      distance: 1.7,
-      achievementRate: 42,
-      address: "서울시 강남구 도곡동 567-89",
-      studentCount: 820,
-      grade: "B",
-      lat: 37.575,
-      lng: 126.98,
-    },
-    {
-      id: "8",
-      name: "푸른중학교",
-      distance: 1.9,
-      achievementRate: 38,
-      address: "서울시 강남구 대치동 678-90",
-      studentCount: 1100,
-      grade: "B",
-      lat: 37.571,
-      lng: 126.99,
-    },
-  ];
+const ResultsPage = () => {
+  const { apartmentName } = useParams<{ apartmentName: string }>();
+  const navigate = useNavigate();
+  const [data, setData] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const averageAchievementRate = Math.round(
-    mockSchools.reduce((sum, school) => sum + school.achievementRate, 0) /
-      mockSchools.length
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!apartmentName) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          `http://localhost:8000/search-schools?apartment=${encodeURIComponent(
+            apartmentName
+          )}&sort_by=distance&radius=3.0`
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "검색 중 오류가 발생했습니다.");
+        }
+
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [apartmentName]);
+
+  const handleBack = () => {
+    navigate("/");
+  };
+
+  // apartmentName이 없으면 검색 페이지로 리다이렉트
+  if (!apartmentName) {
+    navigate("/");
+    return null;
+  }
+
+  // 로딩 상태
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <h2 className="text-xl font-semibold">검색 중...</h2>
+          <p className="text-muted-foreground">
+            {apartmentName} 주변 중학교 정보를 찾고 있습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="p-4 bg-destructive/10 rounded-full w-fit mx-auto">
+            <School className="h-12 w-12 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold">검색 실패</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={handleBack} className="mt-4">
+            다시 검색하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 데이터가 없거나 학교가 없는 경우
+  if (!data || !data.schools || data.schools.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="p-4 bg-muted rounded-full w-fit mx-auto">
+            <School className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold">검색 결과 없음</h2>
+          <p className="text-muted-foreground">
+            반경 3km 내에 중학교가 없습니다. 다른 아파트를 검색해보세요.
+          </p>
+          <Button onClick={handleBack} className="mt-4">
+            다시 검색하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const getAchievementGrade = (rate: number) => {
     if (rate <= 20)
@@ -151,7 +161,7 @@ const ResultsPage = ({ apartmentName, onBack }: ResultsPageProps) => {
     };
   };
 
-  const gradeInfo = getAchievementGrade(averageAchievementRate);
+  const gradeInfo = getAchievementGrade(data.percentile || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -160,7 +170,7 @@ const ResultsPage = ({ apartmentName, onBack }: ResultsPageProps) => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -184,14 +194,14 @@ const ResultsPage = ({ apartmentName, onBack }: ResultsPageProps) => {
               주변 중학교 평균 학업성취도
             </CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              반경 3km 내 {mockSchools.length}개 중학교 기준
+              반경 3km 내 {data.schools.length}개 중학교 기준
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-4xl font-bold mb-2">
-                  상위 {averageAchievementRate}%
+                  상위 {data.percentile || 0}%
                 </div>
                 <Badge className={`${gradeInfo.color} text-sm`}>
                   {gradeInfo.grade}등급 · {gradeInfo.label}
@@ -214,14 +224,24 @@ const ResultsPage = ({ apartmentName, onBack }: ResultsPageProps) => {
                 주변 중학교 목록
               </CardTitle>
               <CardDescription>
-                거리 순으로 정렬된 {mockSchools.length}개 중학교
+                거리 순으로 정렬된 {data.schools.length}개 중학교
               </CardDescription>
             </CardHeader>
           </Card>
 
           <div className="space-y-3">
-            {mockSchools.map((school, index) => (
-              <SchoolCard key={school.id} school={school} rank={index + 1} />
+            {data.schools.map((school) => (
+              <SchoolCard
+                key={school.rank}
+                school={{
+                  id: school.rank.toString(),
+                  name: school.학교명,
+                  distance: school.distance_km,
+                  achievementRate: school.performance_score,
+                  address: "", // API에서 주소 정보가 없으므로 빈 문자열
+                }}
+                rank={school.rank}
+              />
             ))}
           </div>
         </div>
