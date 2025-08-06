@@ -1,56 +1,29 @@
-import { useState } from "react";
+import { Toaster } from "./components/ui/toaster";
+import { Toaster as Sonner } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SearchPage from "./components/SearchPage";
+import ResultsPage from "./components/ResultsPage";
 import "./App.css";
 
+const queryClient = new QueryClient();
+
+// 메인 App 컴포넌트
 function App() {
-  const [prompt, setPrompt] = useState("");
-  const [generatedText, setGeneratedText] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const generateText = async () => {
-    if (!prompt.trim()) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `http://localhost:8000/generate?prompt=${encodeURIComponent(prompt)}`
-      );
-      const data = await response.json();
-      setGeneratedText(data.generated_text);
-    } catch (error) {
-      console.error("Error generating text:", error);
-      setGeneratedText("Error generating text. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="app">
-      <h1>AI Text Generator</h1>
-      <div className="input-section">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter your prompt here..."
-          rows={4}
-          className="prompt-input"
-        />
-        <button
-          onClick={generateText}
-          disabled={loading || !prompt.trim()}
-          className="generate-btn"
-        >
-          {loading ? "Generating..." : "Generate Text"}
-        </button>
-      </div>
-
-      {generatedText && (
-        <div className="output-section">
-          <h3>Generated Text:</h3>
-          <div className="generated-text">{generatedText}</div>
-        </div>
-      )}
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<SearchPage />} />
+            <Route path="/results/:apartmentName" element={<ResultsPage />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
