@@ -9,6 +9,7 @@ services:
       - ./apps/backend:/app
     environment:
       - PYTHONPATH=/app
+      - KAKAO_REST_API_KEY=your-kakao-api-key
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
