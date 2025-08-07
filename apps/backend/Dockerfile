@@ -5,7 +5,7 @@ FROM apache/airflow:2.9.1-python3.12
 USER root
 
 # Copy project requirements
-COPY mlops/requirements.txt /opt/airflow/requirements.txt
+COPY requirements.txt /opt/airflow/requirements.txt
 
 # Switch to airflow user to install Python dependencies per Airflow recommendations
 USER airflow
@@ -15,11 +15,10 @@ RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
 USER root
 
 # Copy your mlops scripts and DAG definition into the image
-COPY mlops/ /opt/airflow/mlops/
-COPY airflow/dags/mlops_project/daily_mlop_workflow.py /opt/airflow/dags/
+COPY daily_mlop_workflow.py /opt/airflow/dags/
 
 # Ensure correct permissions
-RUN chown -R airflow: /opt/airflow/mlops /opt/airflow/dags
+RUN chown -R airflow: /opt/airflow/dags
 
 # Revert to non-root user for runtime
 USER airflow
