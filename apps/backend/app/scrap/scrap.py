@@ -10,7 +10,7 @@ def parse_args():
     )
     parser.add_argument(
         "--area",
-        default="11680",
+        default="11", #서울 전체로 정의
         help="지역 코드 (예: 11=서울, 11680=서울 강남구)",
     )
     parser.add_argument(
@@ -67,8 +67,31 @@ def main():
             order=order,
             orderby=orderby,
         )
+        # ── [A] rank 열 제거 & location → gu·dong 분리 ─────────────────────
+        for row in data:
+            row.pop("rank", None)                    # 1) rank 제거
+            loc = row.pop("location", "").strip()    # 2) location 추출·삭제
+            parts = loc.split()
+            gu = dong = ""
+            for p in parts:                          # 3) 구 · 동 판별
+                if p.endswith("구"):
+                    gu = p
+                elif p.endswith(("동", "읍", "면")):
+                    dong = p
+            row["gu"]   = gu
+            row["dong"] = dong
+        # ────────────────────────────────────────────────────────────────
+
+
+        data = [row for row in data if row["school_name"] != "평균"]
+        def _avg(row):
+            v = row.get("average", "").replace("%", "").strip()  # '97.6%' → '97.6'
+            return float(v) if v else -1                         # 빈 값이면 -1
+        data.sort(key=_avg, reverse=True)
+        for r in data: r.pop("average", None)
+
         # 파일명: metrics_area_type.csv
-        filename = f"{metric}_{args.area}_{args.type}.csv"
+        filename = "middle_school.csv"  
         filepath = os.path.join(args.output_dir, filename)
         save_to_csv(data, filepath)
 
