@@ -4,12 +4,13 @@ services:
   backend:
     build: ./apps/backend
     ports:
-      - "8000:8000"
+      - "8080:8000"
     volumes:
       - ./apps/backend:/app
     environment:
       - PYTHONPATH=/app
       - KAKAO_REST_API_KEY=your-kakao-api-key
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
@@ -25,7 +26,7 @@ services:
       - ./apps/frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8080
     depends_on:
       - backend
     restart: unless-stopped
