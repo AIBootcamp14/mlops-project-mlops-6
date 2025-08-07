@@ -51,7 +51,7 @@ const ResultsPage = () => {
         const apiUrl =
           window.APP_CONFIG?.API_URL ||
           import.meta.env.VITE_API_URL ||
-          "http://localhost:8000";
+          "http://localhost:8080";
 
         const response = await fetch(
           `${apiUrl}/search-schools?apartment=${encodeURIComponent(
