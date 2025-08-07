@@ -23,6 +23,8 @@ def get_cors_origins():
             "https://localhost:5173",
             "https://localhost:3000",
             "https://localhost:8080",
+            "http://dv1j8m27yhdun.cloudfront.net",
+            "https://dv1j8m27yhdun.cloudfront.net",
             "*"  # 개발 중에는 모든 도메인 허용
         ]
 

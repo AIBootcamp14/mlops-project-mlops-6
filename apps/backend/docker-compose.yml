@@ -4,16 +4,16 @@ services:
   backend:
     build: ./apps/backend
     ports:
-      - "8080:8000"
+      - "8080:8080"
     volumes:
       - ./apps/backend:/app
     environment:
       - PYTHONPATH=/app
       - KAKAO_REST_API_KEY=your-kakao-api-key
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080,http://dv1j8m27yhdun.cloudfront.net,https://dv1j8m27yhdun.cloudfront.net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/docs"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,30 +1,34 @@
-# Use the official Airflow image as base (Python 3.12)
-FROM apache/airflow:2.9.1-python3.12
+# Use Python 3.12 slim image
+FROM python:3.12-slim
 
-# Switch to root to install OS-level dependencies (none here)
-USER root
+# Set working directory
+WORKDIR /app
 
-# Copy project requirements
-COPY requirements.txt /opt/airflow/requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Switch to airflow user to install Python dependencies per Airflow recommendations
-USER airflow
-RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Switch back to root to copy code and adjust permissions
-USER root
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your mlops scripts and DAG definition into the image
-COPY daily_mlop_workflow.py /opt/airflow/dags/
+# Copy application code and data files
+COPY app/ ./app/
+COPY daily_mlop_workflow.py .
+COPY middle_schools.csv .
 
-# Ensure correct permissions
-RUN chown -R airflow: /opt/airflow/dags
+# Create data directory
+RUN mkdir -p data
 
-# Revert to non-root user for runtime
-USER airflow
-
-# Entrypoint: initialize DB, then start scheduler & webserver
-ENTRYPOINT ["/bin/bash", "-c", "airflow db init && airflow scheduler & airflow webserver --port 8080"]
-
-# Expose webserver port
+# Expose port
 EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/docs || exit 1
+
+# Run FastAPI application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
