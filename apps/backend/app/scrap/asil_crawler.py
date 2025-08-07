@@ -226,9 +226,11 @@ class AsilCrawler:
             descriptive keys.
         """
         soup = bs4.BeautifulSoup(html, "html.parser")
-        table_div = soup.find("div", class_="tbList")
-        if not table_div:
-            raise RuntimeError("Failed to locate table container.")
+        # 페이지 구조: div.tbList 가 2개 → 0번째(헤더), 1번째(데이터)
+        tables = soup.find_all("div", class_="tbList")
+        if len(tables) < 2:
+            raise RuntimeError("Failed to locate data table.")
+        table_div = tables[1]
         tbody = table_div.find("tbody")
         if not tbody:
             # In some cases (e.g. no data) there may be no tbody.
@@ -262,33 +264,32 @@ class AsilCrawler:
         order: str = "1",
         orderby: str = "desc",
     ) -> List[Dict[str, str]]:
-        """Fetch and parse the school list for a given area.
-
-        Parameters
-        ----------
-        area_code : str
-            Area code for which to fetch data.  May be the
-            two‑digit province code or a more specific five‑digit
-            district code.  Passing the province code returns the
-            aggregated data for the entire province.
-        type1 : str, optional
-            ``'3'`` for 중학교 (middle schools) or ``'4'`` for 고등학교
-            (high schools).  Defaults to ``'3'``.
-        order : str, optional
-            Sort criteria: ``'1'`` for 학업성취도순 (achievement
-            score order), ``'7'`` for 진학률순 (advancement rate order).
-            Defaults to ``'1'``.
-        orderby : str, optional
-            ``'asc'`` or ``'desc'`` for ascending or descending
-            ordering.  Defaults to ``'desc'``.
-
-        Returns
-        -------
-        list of dict
-            Parsed table data.  Each entry is a dictionary with keys
-            ``rank``, ``location``, ``school_name`` and so on.
         """
-        html = self._get_page(area=area_code, type1=type1, order=order, orderby=orderby)
+        두 자리(도 단위) 코드를 받으면 하위 5-자리 구·군 코드를 모두 순회해
+        결과를 합칩니다. 5-자리 코드나 '00'(전국)은 한 번만 요청합니다.
+        """
+        # ── ① 도 코드(2자리, '00' 제외) ───────────────────────────
+        if len(area_code) == 2 and area_code != "00":
+            merged: List[Dict[str, str]] = []
+            for code in self.get_district_codes(area_code):
+                if len(code) == 5:          # 실제 구·군 코드
+                    merged.extend(
+                        self.fetch_school_list(
+                            area_code=code,
+                            type1=type1,
+                            order=order,
+                            orderby=orderby,
+                        )
+                    )
+            return merged
+
+        # ── ② 구·군 코드(5자리) 또는 전국('00') ───────────────────
+        html = self._get_page(
+            area=area_code,
+            type1=type1,
+            order=order,
+            orderby=orderby,
+        )
         return self.parse_school_list(html)
 
 
