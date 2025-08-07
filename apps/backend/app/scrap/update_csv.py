@@ -37,6 +37,7 @@ def fetch_school_list(area: str, type1: str, order: str, orderby: str) -> list[d
         'order': order,
         'orderby': orderby,
     }
+    
     resp = session.post(BASE_URL, data=payload)
     resp.raise_for_status()
 
@@ -87,7 +88,7 @@ def parse_args():
         description="Update school achievement/progression CSV files"
     )
     parser.add_argument(
-        "--area", default="11680", help="지역 코드 (예: 11=서울, 11680=강남구)"
+        "--area", default="11", help="지역 코드 (예: 11=서울, 11680=강남구)" #서울 전체로 정의
     )
     parser.add_argument(
         "--type", choices=["3", "4"], default="3",
@@ -117,14 +118,42 @@ def main():
     for metric in args.metrics:
         order, orderby = metric_map[metric]
         data = fetch_school_list(
-            area=args.area,
-            type1=args.type,
-            order=order,
-            orderby=orderby,
-        )
-        filename = f"{metric}_{args.area}_{args.type}.csv"
-        filepath = os.path.join(args.output_dir, filename)
-        save_to_csv(data, filepath)
+        area=args.area,
+        type1=args.type,
+        order=order,
+        orderby=orderby,
+    )
+    
+    # ── [A] rank 열 제거 & location → gu·dong 분리 ─────────────────────
+    for row in data:
+        row.pop("rank", None)                    # 1) rank 제거
+        loc = row.pop("location", "").strip()    # 2) location 추출·삭제
+        parts = loc.split()
+        gu = dong = ""
+        for p in parts:                          # 3) 구 · 동 판별
+            if p.endswith("구"):
+                gu = p
+            elif p.endswith(("동", "읍", "면")):
+                dong = p
+        row["gu"]   = gu
+        row["dong"] = dong
+    # ────────────────────────────────────────────────────────────────
+
+
+    # ──────────────── ① 구(행정구)별 평균 행 제거 ────────────────
+    data = [row for row in data if row["school_name"] != "평균"]
+
+    # ──────────────── ② % 기호 제거 후 학업성취도 내림차순 정렬 ────────────────
+    def _avg(row):
+        v = row.get("average", "").replace("%", "").strip()
+        return float(v) if v else -1
+    data.sort(key=_avg, reverse=True)
+    for r in data: r.pop("average", None)
+
+    filename = "middle_school.csv"
+    filepath = os.path.join(args.output_dir, filename)
+    save_to_csv(data, filepath)
+
 
 
 if __name__ == '__main__':
