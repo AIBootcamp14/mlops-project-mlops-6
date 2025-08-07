@@ -15,12 +15,9 @@ RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
 USER root
 
 # Copy your mlops scripts and DAG definition into the image
-# COPY mlops/ /opt/airflow/mlops/
-# COPY airflow/dags/mlops_project/daily_mlop_workflow.py /opt/airflow/dags/
 COPY daily_mlop_workflow.py /opt/airflow/dags/
 
 # Ensure correct permissions
-# RUN chown -R airflow: /opt/airflow/mlops /opt/airflow/dags
 RUN chown -R airflow: /opt/airflow/dags
 
 # Revert to non-root user for runtime
