@@ -1,24 +1,31 @@
-FROM python:3.10-slim
+# Use the official Airflow image as base (Python 3.12)
+FROM apache/airflow:2.9.1-python3.12
 
-WORKDIR /app
+# Switch to root to install OS-level dependencies (none here)
+USER root
 
-# 시스템 패키지 업데이트 및 curl 설치
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Copy project requirements
+COPY mlops/requirements.txt /opt/airflow/requirements.txt
 
-# Python 의존성 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Switch to airflow user to install Python dependencies per Airflow recommendations
+USER airflow
+RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
 
-# 애플리케이션 코드 복사
-COPY app/ app/
+# Switch back to root to copy code and adjust permissions
+USER root
 
-# 포트 노출
-EXPOSE 8000
+# Copy your mlops scripts and DAG definition into the image
+COPY mlops/ /opt/airflow/mlops/
+COPY airflow/dags/mlops_project/daily_mlop_workflow.py /opt/airflow/dags/
 
-# 헬스체크를 위한 curl 설치 확인
-RUN curl --version
+# Ensure correct permissions
+RUN chown -R airflow: /opt/airflow/mlops /opt/airflow/dags
 
-# 애플리케이션 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Revert to non-root user for runtime
+USER airflow
+
+# Entrypoint: initialize DB, then start scheduler & webserver
+ENTRYPOINT ["/bin/bash", "-c", "airflow db init && airflow scheduler & airflow webserver --port 8080"]
+
+# Expose webserver port
+EXPOSE 8080
