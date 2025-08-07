@@ -4,13 +4,18 @@ services:
   backend:
     build: ./apps/backend
     ports:
-      - "8080:8080"
+      - "8080:8080" # FastAPI
+      - "8081:8080" # Airflow Web UI (기본 포트)
     volumes:
-      - ./apps/backend:/app
+      - ./apps/backend:/opt/airflow
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/opt/airflow
       - KAKAO_REST_API_KEY=your-kakao-api-key
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080,http://dv1j8m27yhdun.cloudfront.net,https://dv1j8m27yhdun.cloudfront.net
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8081
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/docs"]

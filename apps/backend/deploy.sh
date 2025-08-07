@@ -26,3 +26,4 @@ docker-compose logs backend
 echo "Deployment completed!"
 echo "Backend should be available at: http://YOUR_EC2_IP:8080"
 echo "API docs available at: http://YOUR_EC2_IP:8080/docs"
+echo "Airflow Web UI available at: http://YOUR_EC2_IP:8081"
