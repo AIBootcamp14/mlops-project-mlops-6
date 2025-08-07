@@ -48,7 +48,9 @@ const ResultsPage = () => {
         setError(null);
 
         const response = await fetch(
-          `http://localhost:8000/search-schools?apartment=${encodeURIComponent(
+          `${
+            import.meta.env.VITE_API_URL
+          }/search-schools?apartment=${encodeURIComponent(
             apartmentName
           )}&sort_by=distance&radius=3.0`
         );
