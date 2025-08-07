@@ -47,10 +47,14 @@ const ResultsPage = () => {
         setLoading(true);
         setError(null);
 
+        // 런타임 config 또는 환경변수에서 API URL 가져오기
+        const apiUrl =
+          window.APP_CONFIG?.API_URL ||
+          import.meta.env.VITE_API_URL ||
+          "http://localhost:8000";
+
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/search-schools?apartment=${encodeURIComponent(
+          `${apiUrl}/search-schools?apartment=${encodeURIComponent(
             apartmentName
           )}&sort_by=distance&radius=3.0`
         );
