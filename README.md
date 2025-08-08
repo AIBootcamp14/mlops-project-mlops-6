@@ -61,7 +61,7 @@
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Frontend  │    │   Backend   │    │   Kakao API │
 │   (React)   │◄──►│   (FastAPI) │◄──►│   (Geocoding)│
-│   Port:5173 │    │   Port:8000 │    │             │
+│   Port:5173 │    │   Port:8080 │    │             │
 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
@@ -135,8 +135,8 @@ docker compose up -d --build
 #### **서비스 접속:**
 
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- API 문서: http://localhost:8000/docs
+- Backend API: http://localhost:8080
+- API 문서: http://localhost:8080/docs
 
 ### **6.2 개별 서비스 실행 (Docker 없이)**
 
@@ -174,10 +174,10 @@ docker compose up -d --build
 
    ```bash
    # 개발 모드로 실행 (자동 재시작)
-   uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+   uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
 
    # 또는 프로덕션 모드
-   uvicorn app.main:app --host 127.0.0.1 --port 8000
+   uvicorn app.main:app --host 127.0.0.1 --port 8080
    ```
 
 #### **Frontend 실행:**
@@ -221,7 +221,7 @@ docker compose up -d --build
    # Terminal 1
    cd apps/backend
    source venv/bin/activate  # macOS/Linux
-   uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+   uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
    ```
 
 2. **Frontend 실행:**
@@ -234,14 +234,14 @@ docker compose up -d --build
 
 3. **브라우저에서 확인:**
    - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000/docs
+   - Backend API: http://localhost:8080/docs
 
 ### **6.4 API 사용법**
 
 #### **텍스트 생성 API:**
 
 ```bash
-curl "http://localhost:8000/generate?prompt=Hello%20world"
+   curl "http://localhost:8080/generate?prompt=Hello%20world"
 ```
 
 #### **응답 예시:**
@@ -257,8 +257,8 @@ curl "http://localhost:8000/generate?prompt=Hello%20world"
 ```python
 import requests
 
-response = requests.get("http://localhost:8000/generate",
-                        params={"prompt": "Hello world"})
+   response = requests.get("http://localhost:8080/generate",
+                          params={"prompt": "Hello world"})
 print(response.json())
 ```
 

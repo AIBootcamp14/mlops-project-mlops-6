@@ -8,11 +8,33 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# CORS 설정 - 환경변수에서 동적으로 설정
+def get_cors_origins():
+    """환경변수에서 CORS origins 가져오기"""
+    origins = os.getenv("ALLOWED_ORIGINS", "")
+    if origins:
+        return [origin.strip() for origin in origins.split(",")]
+    else:
+        # 기본값 (개발 환경)
+        return [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "https://localhost:5173",
+            "https://localhost:3000",
+            "https://localhost:8080",
+            "http://dv1j8m27yhdun.cloudfront.net",
+            "https://dv1j8m27yhdun.cloudfront.net",
+            "*"  # 개발 중에는 모든 도메인 허용
+        ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=get_cors_origins(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # 데이터 모델
