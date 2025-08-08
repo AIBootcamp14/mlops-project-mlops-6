@@ -225,7 +225,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public (but allow frontend public folder)
+!apps/frontend/public/
 
 # Storybook build outputs
 .out
@@ -251,6 +252,5 @@ checkpoints/
 data/
 datasets/
 *.csv
-*.json
 *.parquet
 *.feather 
